@@ -1,0 +1,8 @@
+{
+  "name": "bkunkle-react-app",
+  "version": "0.1",
+  "prefix": "./react-frontend",
+  "scripts": {
+    "start": "cd ./react-frontend && npm start"
+  }
+}
