@@ -1,14 +1,27 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import Table from "./Table";
 import Form from "./Form";
 
 export default function App() {
+  // const [characters, setCharacters] = useState([
+  //   { name: "Charlie", job: "Janitor" },
+  //   { name: "Mac", job: "Bouncer" },
+  //   { name: "Dee", job: "Aspring actress" },
+  //   { name: "Dennis", job: "Bartender" },
+  // ]);
   const [characters, setCharacters] = useState([
-    { name: "Charlie", job: "Janitor" },
-    { name: "Mac", job: "Bouncer" },
-    { name: "Dee", job: "Aspring actress" },
-    { name: "Dennis", job: "Bartender" },
   ]);
+  function fetchAll() {
+    return axios
+      .get("http://localhost:8000/users")
+      .then((response) => response.data.users_list);
+  }
+  useState(() => {
+    fetchAll()
+      .then((users_list) => setCharacters(users_list))
+      .catch((err) => console.error(err));
+  }, []);
   function removeCharacter(index) {
     console.assert(index !== undefined, "index is undefined");
     console.assert(index !== null, "index is null");
