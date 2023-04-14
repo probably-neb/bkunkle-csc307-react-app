@@ -6,29 +6,39 @@ import Form from "./Form";
 const backend = {
   routes: {
     users: "http://localhost:8000/users",
+    user: (id) => `${backend.routes.users}/${id}`,
+  },
+  raise_for_status: (status, msg) => {
+    return (res) => {
+      if (!res || res.status !== status) {
+        if (!msg) {
+          msg = res;
+        }
+        throw Error(msg);
+      }
+      return res;
+    };
   },
   fetchAll: () => {
     return axios
       .get(backend.routes.users)
+      .then(backend.raise_for_status(200))
       .then((response) => response.data.users_list);
   },
   addUser: (user) => {
-    return axios.post(backend.routes.users, user).then((res) => {
-      if (!res || res.status !== 201) {
-        throw Error("post of user failed");
-      }
-      return res.data;
-    });
+    return axios
+      .post(backend.routes.users, user)
+      .then(backend.raise_for_status(201))
+      .then((res) => res.data);
+  },
+  removeUser: (id) => {
+    return axios
+      .delete(backend.routes.user(id))
+      .then(backend.raise_for_status(204));
   },
 };
 
 export default function App() {
-  // const [characters, setCharacters] = useState([
-  //   { name: "Charlie", job: "Janitor" },
-  //   { name: "Mac", job: "Bouncer" },
-  //   { name: "Dee", job: "Aspring actress" },
-  //   { name: "Dennis", job: "Bartender" },
-  // ]);
   const [characters, setCharacters] = useState([]);
   useEffect(() => {
     backend
@@ -41,13 +51,18 @@ export default function App() {
     console.assert(index !== null, "index is null");
     console.assert(
       index < characters.length,
-      `index: ${index} not within bounds of character array: ${characters.length}`
+      `user index out of bounds : ${index} > ${characters.length}`
     );
-    setCharacters((current_characters) => {
-      const updated_characters = [...current_characters];
-      updated_characters.splice(index, 1);
-      return updated_characters;
-    });
+    backend
+      .removeUser(characters[index].id)
+      .then(() => {
+        setCharacters((current_characters) => {
+          const updated_characters = [...current_characters];
+          updated_characters.splice(index, 1);
+          return updated_characters;
+        });
+      })
+      .catch(console.error);
   }
   function tryAddCharacter(person) {
     // don't add incomplete people

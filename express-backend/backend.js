@@ -101,13 +101,13 @@ app.post("/users", (req, res) => {
 });
 
 app.delete("/users/:id", (req, res) => {
-  const { id } = req.params;
-  const user = findUserById(id);
-  if (user === undefined) {
-    res.status(400).send("User not found");
+  let { id } = req.params;
+  id = Number(id);
+  const index = users.users_list.findIndex((user) => user.id === id);
+  if (index === undefined) {
+    res.status(404).send(`User with id: ${id} not found`);
     return;
   }
-  const index = users.users_list.findIndex((user) => user.id === id);
   users.users_list.splice(index, 1);
-  res.status(200).end();
+  res.status(204).end();
 });

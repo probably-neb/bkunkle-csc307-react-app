@@ -2,8 +2,9 @@
   "name": "bkunkle-react-app",
   "version": "0.1",
   "scripts": {
-    "start": "cd ./react-frontend && npm start",
-    "dev": "concurrently \"cd ./react-frontend && npm start\" \"cd ./express-backend && npm run dev\""
+    "start": "npm --prefix=react-frontend start",
+    "dev": "concurrently \"npm --prefix=react-frontend start\" \"npm --prefix=express-backend run dev\"",
+    "postinstall": "npm --prefix=react-frontend install && npm --prefix=express-backend install"
   },
   "devDependencies": {
     "concurrently": "^8.0.1"
