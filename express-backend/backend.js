@@ -1,5 +1,5 @@
 const express = require("express");
-const cors = require('cors');
+const cors = require("cors");
 const app = express();
 const port = 8000;
 
@@ -17,42 +17,52 @@ app.listen(port, () => {
 const users = {
   users_list: [
     {
-      id: "xyz789",
+      id: 0,
       name: "Charlie",
       job: "Janitor",
     },
     {
-      id: "abc123",
+      id: 1,
       name: "Mac",
       job: "Bouncer",
     },
     {
-      id: "ppp222",
+      id: 2,
       name: "Mac",
       job: "Professor",
     },
     {
-      id: "yat999",
+      id: 3,
       name: "Dee",
       job: "Aspring actress",
     },
     {
-      id: "zap555",
+      id: 4,
       name: "Dennis",
       job: "Bartender",
     },
   ],
 };
+let next_id = 5;
 
 function findUserById(id) {
   return users.users_list.find((user) => user.id === id);
+}
+
+function generateNewUserId() {
+  // NOTE: I think this is safe because node/express handle requests sequentially
+  // so no need to worry about race conditions
+  const id = next_id;
+  next_id += 1;
+  return id;
 }
 
 app.get("/users", (req, res) => {
   const { name, job } = req.query;
   let matches = [];
   for (let i = 0; i < users.users_list.length; i++) {
-    const name_matches = name === undefined || users.users_list[i].name === name;
+    const name_matches =
+      name === undefined || users.users_list[i].name === name;
     const job_matches = job === undefined || users.users_list[i].job === job;
     if (name_matches && job_matches) {
       matches.push(users.users_list[i]);
@@ -73,18 +83,21 @@ app.get("/users/:id", (req, res) => {
 });
 
 app.post("/users", (req, res) => {
-  const { name, job, id } = req.body;
-  if ([name, job, id].includes(undefined)) {
+  const { name, job } = req.body;
+  if ([name, job].includes(undefined)) {
     // TODO: more descriptive error
     res.status(400).send("Missing information");
     return;
-  }
-  if (findUserById(id) !== undefined) {
-    res.status(400).send("User already exists");
+  } else if (req.body.id !== undefined) {
+    // TODO: update request handler
+    res.status(400).send("Cannot specify id in post");
     return;
   }
-  users.users_list.push({ name, job, id });
-  res.status(200).end();
+
+  let id = generateNewUserId();
+  const user = { name, job, id };
+  users.users_list.push(user);
+  res.status(201).send(user);
 });
 
 app.delete("/users/:id", (req, res) => {

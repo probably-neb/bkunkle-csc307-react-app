@@ -3,6 +3,25 @@ import axios from "axios";
 import Table from "./Table";
 import Form from "./Form";
 
+const backend = {
+  routes: {
+    users: "http://localhost:8000/users",
+  },
+  fetchAll: () => {
+    return axios
+      .get(backend.routes.users)
+      .then((response) => response.data.users_list);
+  },
+  addUser: (user) => {
+    return axios.post(backend.routes.users, user).then((res) => {
+      if (!res || res.status !== 201) {
+        throw Error("post of user failed");
+      }
+      return res.data;
+    });
+  },
+};
+
 export default function App() {
   // const [characters, setCharacters] = useState([
   //   { name: "Charlie", job: "Janitor" },
@@ -10,15 +29,10 @@ export default function App() {
   //   { name: "Dee", job: "Aspring actress" },
   //   { name: "Dennis", job: "Bartender" },
   // ]);
-  const [characters, setCharacters] = useState([
-  ]);
-  function fetchAll() {
-    return axios
-      .get("http://localhost:8000/users")
-      .then((response) => response.data.users_list);
-  }
-  useState(() => {
-    fetchAll()
+  const [characters, setCharacters] = useState([]);
+  useEffect(() => {
+    backend
+      .fetchAll()
       .then((users_list) => setCharacters(users_list))
       .catch((err) => console.error(err));
   }, []);
@@ -38,14 +52,22 @@ export default function App() {
   function tryAddCharacter(person) {
     // don't add incomplete people
     if ([undefined, null, ""].includes(person.job)) {
-      console.warn("person has no job");
+      console.error("person has no job");
       return false;
     }
     if ([undefined, null, ""].includes(person.name)) {
-      console.warn("person has no name");
+      console.error("person has no name");
       return false;
     }
-    setCharacters((current_characters) => current_characters.concat([person]));
+    backend
+      .addUser(person)
+      .then((new_user) => {
+        setCharacters((current_characters) =>
+          current_characters.concat([new_user])
+        );
+      })
+      .catch((err) => console.error(err.response));
+
     return true;
   }
   return (
